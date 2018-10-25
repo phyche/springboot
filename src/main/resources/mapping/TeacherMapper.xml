@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.example.springboot.mapper.TeacherDao">
+
+    <resultMap id="teacherMap" type="com.example.springboot.module.Teacher">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="name" column="t_name" jdbcType="VARCHAR"/>
+
+        <collection  property="students"  ofType="com.example.springboot.module.Student">
+            <result property="id" column="student_id" jdbcType="INTEGER"/>
+            <result property="name" column="s_name" jdbcType="VARCHAR"/>
+            <result property="studentCode" column="student_code" jdbcType="VARCHAR"/>
+        </collection>
+    </resultMap>
+
+    <sql id="Base_Column_List" >
+        id, t_name
+    </sql>
+
+    <select id="selectTeacherList" resultMap="teacherMap">
+        select
+           t.*,s.id as student_id,s.s_name,s.student_code
+        from t_teacher t
+        LEFT JOIN t_student s on s.teacher_id = t.id
+    </select>
+
+    <select id="selectByPrimaryKey" resultMap="teacherMap" parameterType="java.lang.Integer" >
+        select
+        <include refid="Base_Column_List" />
+        from t_teacher
+        where id = #{id,jdbcType=INTEGER}
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+        delete from t_teacher
+        where id = #{id,jdbcType=INTEGER}
+    </delete>
+
+    <insert id="insert" parameterType="com.example.springboot.module.Teacher" >
+        insert into t_teacher (id, t_name)
+        values (#{id,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR})
+    </insert>
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.example.springboot.module.Teacher" >
+        update t_teacher
+        <set >
+            <if test="name != null" >
+                t_name = #{name,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+
+    <update id="updateByPrimaryKey" parameterType="com.example.springboot.module.Teacher" >
+        update t_user
+        set t_name = #{name,jdbcType=VARCHAR}
+    </update>
+
+</mapper>

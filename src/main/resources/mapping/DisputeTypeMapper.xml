@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.example.springboot.mapper.DisputeTypeDao">
+
+    <resultMap id="resultMap" type="com.example.springboot.module.DisputeType">
+        <result property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="parentId" column="parent_id" jdbcType="VARCHAR"/>
+        <result property="parentIds" column="parent_ids" jdbcType="VARCHAR"/>
+        <result property="parentNames" column="parent_names" jdbcType="VARCHAR"/>
+        <result property="name" column="name" jdbcType="VARCHAR"/>
+        <result property="leadOfficeId" column="lead_office_id" jdbcType="VARCHAR"/>
+        <result property="sort" column="sort" jdbcType="INTEGER"/>
+        <result property="type" column="type" jdbcType="VARCHAR"/>
+        <result property="level" column="level" jdbcType="VARCHAR"/>
+        <result property="createBy" column="create_by" jdbcType="VARCHAR"/>
+        <result property="createDate" column="create_date" jdbcType="DATE"/>
+        <result property="updateBy" column="update_by" jdbcType="VARCHAR"/>
+        <result property="updateDate" column="update_date" jdbcType="DATE"/>
+        <result property="remarks" column="remarks" jdbcType="VARCHAR"/>
+        <result property="delFlag" column="del_flag" jdbcType="VARCHAR"/>
+
+    </resultMap>
+
+    <select id="selectAll" resultMap="resultMap">
+        select
+           t.*
+        from stb_dispute_type t
+        where t.del_flag = "0"
+        order by t.sort asc
+    </select>
+
+    <update id="deleteByIds" >
+        UPDATE stb_dispute_type t
+        SET t.del_flag = '1'
+        WHERE
+        t.id IN
+        <foreach collection="array" open="(" separator="," close=")" item="ids">
+            #{ids}
+        </foreach>
+           OR t.parent_id IN
+        <foreach collection="array" open="(" separator="," close=")" item="ids">
+            #{ids}
+        </foreach>
+        OR
+        <foreach collection="array" index="index" open="(" separator="or" close=")" item="ids">
+            t.parent_ids like CONCAT('%',#{ids},'%')
+        </foreach>
+    </update>
+
+    <insert id="add" parameterType="com.example.springboot.module.DisputeType">
+        insert into stb_dispute_type
+        (id, parent_id, parent_ids, parent_names, name, lead_office_id, sort, type, level, create_by, create_date, update_by, update_date, remarks, del_flag)
+        values
+        (#{id,jdbcType=VARCHAR},
+         #{parentId,jdbcType=VARCHAR},
+         #{parentIds,jdbcType=VARCHAR},
+         #{parentNames,jdbcType=VARCHAR},
+         #{name,jdbcType=VARCHAR},
+         #{leadOfficeId,jdbcType=VARCHAR},
+         #{sort,jdbcType=INTEGER},
+         #{type,jdbcType=VARCHAR},
+         #{level,jdbcType=VARCHAR},
+         #{createBy,jdbcType=VARCHAR},
+         #{createDate,jdbcType=DATE},
+         #{updateBy,jdbcType=VARCHAR},
+         #{updateDate,jdbcType=DATE},
+         #{remarks,jdbcType=VARCHAR},
+         #{delFlag,jdbcType=VARCHAR})
+    </insert>
+</mapper>

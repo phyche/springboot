@@ -1,0 +1,37 @@
+server:
+  port: 8085
+
+spring:
+  profiles:
+    active: dev
+
+  datasource:
+    url: jdbc:mysql://132.126.3.55:3306/mavenweb
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.jdbc.Driver
+    # ʹ��druid����Դ
+    type: com.alibaba.druid.pool.DruidDataSource
+
+  mvc:
+    view:
+      prefix: /plugins/
+      suffix: .jsp
+    static-path-pattern: /**
+  #  读取静态资源文件，如：图片
+  resources:
+    static-locations: classpath:/
+
+# activemq的配置
+  activemq:
+    broker-url: tcp://localhost:61616
+    user: admin
+    password: admin
+    in-memory: true
+    pool:
+      enabled: false
+
+mybatis:
+  mapper-locations: classpath:mapping/*.xml
+  type-aliases-package: com.example.springboot.module
+
