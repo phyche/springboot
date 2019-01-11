@@ -163,6 +163,7 @@
         }
     })
 
+
     var examle = new Vue({
         el: '#example2',
         data: {
