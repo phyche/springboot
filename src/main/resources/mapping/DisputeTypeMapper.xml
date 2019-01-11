@@ -3,7 +3,7 @@
 
 <mapper namespace="com.example.springboot.mapper.DisputeTypeDao">
 
-    <resultMap id="resultMap" type="com.example.springboot.module.DisputeType">
+    <!--<resultMap id="resultMap" type="com.example.springboot.module.DisputeType">
         <result property="id" column="id" jdbcType="VARCHAR"/>
         <result property="parentId" column="parent_id" jdbcType="VARCHAR"/>
         <result property="parentIds" column="parent_ids" jdbcType="VARCHAR"/>
@@ -67,5 +67,5 @@
          #{updateDate,jdbcType=DATE},
          #{remarks,jdbcType=VARCHAR},
          #{delFlag,jdbcType=VARCHAR})
-    </insert>
+    </insert>-->
 </mapper>

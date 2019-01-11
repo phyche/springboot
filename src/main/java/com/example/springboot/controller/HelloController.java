@@ -21,5 +21,17 @@ public class HelloController {
         return view;
     }
 
+    @RequestMapping("/vue")
+    public ModelAndView vue() {
+        ModelAndView view = new ModelAndView();
+        view.setViewName("vue/example");
+        return view;
+    }
 
+    @RequestMapping("/vue2")
+    public ModelAndView vue2() {
+        ModelAndView view = new ModelAndView();
+        view.setViewName("vue/example2");
+        return view;
+    }
 }
