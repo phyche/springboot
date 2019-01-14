@@ -1,0 +1,504 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.example.springboot.mapper.production.RepairMapper">
+
+    <!-- repair 维修单 #begin -->
+    <sql id="all_column_repairmodel">
+        r.id id,
+        r.prod_id prodId,
+        r.group_no groupNo,
+        r.sn sn,
+        r.imei imei,
+        r.org_id orgId,
+        r.status status,
+        r.create_person createPerson,
+        r.create_time createTime,
+        r.curr_engineer currEngineer,
+        r.update_person updatePerson,
+        r.update_time updateTime,
+        r.service_type serviceType,
+        r.engineer_receive_person engineerReceivePerson,
+        r.engineer_receive_time engineerReceiveTime,
+        r.check_person checkPerson,
+        r.check_time checkTime,
+        r.check_content checkContent,
+        r.repair_person repairPerson,
+        r.repair_time repairTime,
+        r.repair_content repairContent,
+        r.write_person writePerson,
+        r.write_time writeTime,
+        r.write_content writeContent,
+        r.new_imei newImei,
+        r.final_check_person finalCheckPerson,
+        r.final_check_time finalCheckTime,
+        r.final_check_content finalCheckContent,
+        r.return_person returnPerson,
+        r.return_time returnTime,
+        r.return_pool_type returnPoolType,
+        r.return_aim returnAim,
+        r.date_created dateCreated,
+        r.last_updated lastUpdated,
+        r.macno macno,
+        r.meid meid,
+        r.original_imei originalImei,
+        r.old_imei oldImei,
+        r.fsn fsn,
+        r.quality_check_person,
+        r.quality_check_time,
+        r.quality_check_content,
+        r.exception_remark exceptionRemark
+    </sql>
+
+    <sql id="repairVoSearch">
+            <![CDATA[ AND r.prod_id is not null and r.prod_id <> '' ]]>
+            <if test="conditions.id != null and conditions.id!=''">AND r.id = #{conditions.id}</if>
+            <if test="conditions.ids !=null and conditions.ids.size()!=0">
+                AND r.id in
+                <foreach collection="conditions.ids" item="id" open="(" separator="," close=")">
+                    #{id}
+                </foreach>
+            </if>
+            <if test="conditions.imeis !=null and conditions.imeis.size()!=0">
+                AND r.imei in
+                <foreach collection="conditions.imeis" item="imei" open="(" separator="," close=")">
+                    #{imei}
+                </foreach>
+            </if>
+            <if test="conditions.prodId != null and conditions.prodId!=''">AND r.prod_id = #{conditions.prodId}</if>
+            <if test="conditions.orgId != null and conditions.orgId!=''">AND r.org_id = #{conditions.orgId}</if>
+            <if test="conditions.imei != null and conditions.imei!=''">AND r.imei = #{conditions.imei}</if>
+            <if test="conditions.serviceType != null">AND r.service_type = #{conditions.serviceType}</if>
+            <if test="conditions.originalImei != null and conditions.originalImei!=''">
+                AND (r.original_imei = #{conditions.originalImei} or r.old_imei = #{conditions.originalImei})
+            </if>
+            <if test="conditions.status != null and conditions.status!=''">AND r.status = #{conditions.status}</if>
+            <if test="conditions.inStatus != null and conditions.inStatus.size() > 0">
+                AND r.status IN
+                <foreach collection="conditions.inStatus" item="item" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="conditions.macno != null and conditions.macno!=''">AND r.macno = #{conditions.macno}</if>
+            <if test="conditions.inMacno != null and conditions.inMacno.size() > 0">
+                AND r.macno IN
+                <foreach collection="conditions.inMacno" item="item" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+            <choose>
+                <when test="conditions.enginerType=='check'">
+                    AND r.check_person =#{conditions.operatorId}
+                </when>
+                <when test="conditions.enginerType=='repair'">
+                    AND r.repair_person =#{conditions.operatorId}
+                </when>
+                <when test="conditions.enginerType=='write'">
+                    AND r.write_person =#{conditions.operatorId}
+                </when>
+                <when test="conditions.enginerType=='currEngineer'">
+                    AND r.curr_engineer =#{conditions.operatorId}
+                </when>
+            </choose>
+            <choose>
+                <when test="conditions.timeType=='create'">
+                    <![CDATA[ AND r.create_time >= #{conditions.startDate} AND r.create_time <= #{conditions.endDate} ]]>
+                </when>
+                <when test="conditions.timeType=='engineerReceive'">
+                    <![CDATA[ AND r.engineer_receive_time >= #{conditions.startDate} AND r.engineer_receive_time <= #{conditions.endDate} ]]>
+                </when>
+                <when test="conditions.timeType=='check'">
+                    <![CDATA[ AND r.check_time >= #{conditions.startDate} AND r.check_time <= #{conditions.endDate} ]]>
+                </when>
+                <when test="conditions.timeType=='repair'">
+                    <![CDATA[ AND r.repair_time >= #{conditions.startDate} AND r.repair_time <= #{conditions.endDate} ]]>
+                </when>
+                <when test="conditions.timeType=='write'">
+                    <![CDATA[ AND r.write_time >= #{conditions.startDate} AND r.write_time <= #{conditions.endDate} ]]>
+                </when>
+                <when test="conditions.timeType=='firstCheck'">
+                    <![CDATA[ AND r.first_check_time >= #{conditions.startDate} AND r.first_check_time <= #{conditions.endDate} ]]>
+                </when>
+                <when test="conditions.timeType=='finalCheck'">
+                    <![CDATA[ AND r.final_check_time >= #{conditions.startDate} AND r.final_check_time <= #{conditions.endDate} ]]>
+                </when>
+                <when test="conditions.timeType=='finish'">
+                    <![CDATA[ AND r.status = 'received_end' AND r.update_time >= #{conditions.startDate} AND r.update_time <= #{conditions.endDate} ]]>
+                </when>
+            </choose>
+    </sql>
+
+    <sql id="repairMacVoSearch">
+        <if test="conditions.repairId!= null and conditions.repairId!=''">AND rm.repair_id = #{conditions.repairId}</if>
+        <if test="conditions.applyNo!= null and conditions.applyNo!=''">AND rm.apply_no = #{conditions.applyNo}</if>
+        <if test="conditions.orgId!= null and conditions.orgId!=''">AND rm.org_id = #{conditions.orgId}</if>
+        <if test="conditions.macno!= null and conditions.macno!=''">AND rm.macno = #{conditions.macno}</if>
+        <if test="conditions.isReturned != null">
+            <if test="conditions.isReturned">
+                AND rm.quantity = rm.good_return_num + rm.bad_return_num
+            </if>
+            <if test="!conditions.isReturned">
+                AND rm.quantity > rm.good_return_num + rm.bad_return_num
+            </if>
+        </if>
+        <if test="conditions.timeType == 'lastReturn'">
+            <![CDATA[ AND rm.last_updated >= #{conditions.startDate} AND rm.last_updated <= #{conditions.endDate} ]]>
+        </if>
+    </sql>
+
+    <insert id="insertRepairs">
+        INSERT INTO `t_srv_factory_repair` (
+        sn, imei, original_imei,macno, id, prod_id, org_id, status, create_person, create_time, service_type) values
+        <foreach collection="items" item="item" separator=",">
+            (
+            <choose>
+                <when test="item.sn!=null">
+                    #{item.sn},
+                </when>
+                <otherwise>
+                    "",
+                </otherwise>
+            </choose>
+            <choose>
+                <when test="item.imei!=null">
+                    #{item.imei},#{item.imei},
+                </when>
+                <otherwise>
+                    "","",
+                </otherwise>
+            </choose>
+            <choose>
+                <when test="item.macno!=null">
+                    #{item.macno},
+                </when>
+                <otherwise>
+                    "",
+                </otherwise>
+            </choose>
+            #{item.id}, #{item.prodId}, #{item.orgId}, #{item.status}, #{item.createPerson}, now(), #{item.serviceType}
+            )
+        </foreach>
+    </insert>
+
+    <update id="updateRepair">
+        UPDATE `t_srv_factory_repair`
+        <set>
+            <if test="model.status != null and model.status!=''">status = #{model.status},</if>
+            <if test="model.macno != null and model.macno!=''">macno = #{model.macno},</if>
+            <if test="model.currEngineer != null and model.currEngineer>0">curr_engineer = #{model.currEngineer},</if>
+            <if test="model.updatePerson != null and model.updatePerson>0">update_person = #{model.updatePerson},</if>
+            <if test="model.updateTime != null">update_time = #{model.updateTime},</if>
+
+            <if test="model.engineerReceivePerson != null and model.engineerReceivePerson>0">engineer_receive_person = #{model.engineerReceivePerson},</if>
+            <if test="model.engineerReceiveTime != null">engineer_receive_time = #{model.engineerReceiveTime},</if>
+            <if test="model.checkPerson != null and model.checkPerson>0">check_person = #{model.checkPerson},</if>
+            <if test="model.checkTime != null">check_time = #{model.checkTime},</if>
+            <if test="model.checkContent != null and model.checkContent!=''">check_content = #{model.checkContent},</if>
+            <if test="model.repairPerson != null and model.repairPerson>0">repair_person = #{model.repairPerson},</if>
+            <if test="model.repairTime != null">repair_time = #{model.repairTime},</if>
+            <if test="model.repairContent != null and model.repairContent!=''">repair_content =
+                #{model.repairContent},
+            </if>
+            <if test="model.writePerson != null and model.writePerson>0">write_person = #{model.writePerson},</if>
+            <if test="model.writeTime != null">write_time = #{model.writeTime},</if>
+            <if test="model.writeContent != null and model.writeContent!=''">write_content = #{model.writeContent},</if>
+            <if test="model.newImei != null and model.newImei!=''">new_imei = #{model.newImei},</if>
+            <if test="model.finalCheckPerson != null and model.finalCheckPerson!=''">final_check_person =
+                #{model.finalCheckPerson},
+            </if>
+            <if test="model.finalCheckTime != null">final_check_time = #{model.finalCheckTime},</if>
+            <if test="model.finalCheckContent != null and model.finalCheckContent!=''">final_check_content =
+                #{model.finalCheckContent},
+            </if>
+            <if test="model.returnPerson != null and model.returnPerson>0">return_person = #{model.returnPerson},</if>
+            <if test="model.returnTime != null">return_time = #{model.returnTime},</if>
+            <if test="model.returnPoolType != null and model.returnPoolType>0">return_pool_type =
+                #{model.returnPoolType},
+            </if>
+            <if test="model.returnAim != null and model.returnAim>0">return_aim = #{model.returnAim},</if>
+            <if test="model.lastUpdated != null">last_updated = #{model.lastUpdated},</if>
+            <if test="model.meid != null and model.meid!=''">meid = #{model.meid},</if>
+            <if test="model.oldImei != null and model.oldImei!=''">old_imei = #{model.oldImei},</if>
+            <if test="model.fsn != null and model.fsn!=''">fsn = #{model.fsn},</if>
+            <if test="model.exceptionRemark != null and model.exceptionRemark!=''">exception_remark = #{model.exceptionRemark},</if>
+        </set>
+        WHERE id = #{model.id}
+    </update>
+
+    <update id="updateRepairBatch">
+        UPDATE `t_srv_factory_repair`
+        <set>
+            <if test="model.returnPerson != null and model.returnPerson>0">return_person = #{model.returnPerson},</if>
+            <if test="model.returnTime != null">return_time = #{model.returnTime},</if>
+            <if test="model.returnPoolType != null and model.returnPoolType>0">return_pool_type =
+                #{model.returnPoolType},
+            </if>
+            <if test="model.qualityCheckPerson != null and model.qualityCheckPerson != ''">quality_check_person = #{model.qualityCheckPerson},</if>
+            <if test="model.qualityCheckTime != null">quality_check_time = #{model.qualityCheckTime},</if>
+            <if test="model.qualityCheckContent != null and model.qualityCheckContent != ''">quality_check_content = #{model.qualityCheckContent},</if>
+            <if test="model.status != null and model.status!=''">status = #{model.status},</if>
+            <if test="model.writeTime != null">write_time = #{model.writeTime},</if>
+            <if test="model.writeContent != null and model.writeContent!=''">write_content = #{model.writeContent},</if>
+            <if test="model.updatePerson != null and model.updatePerson>0">update_person = #{model.updatePerson},</if>
+            <if test="model.updateTime != null">update_time = #{model.updateTime},</if>
+        </set>
+        WHERE id in
+        <foreach collection="model.ids" item="id" open="(" separator="," close=")">
+          #{id}
+        </foreach>
+        <if test="model.originStatus != null and model.originStatus != ''">
+            AND status = #{model.originStatus}
+        </if>
+    </update>
+
+    <select id="selectRepairs" resultType="com.example.springboot.module.production.Repair" parameterType="map">
+        SELECT
+        <include refid="all_column_repairmodel"/>
+        FROM `t_srv_factory_repair` r
+        where 1=1
+        <include refid="repairVoSearch"></include>
+        order by id desc
+    </select>
+
+    <select id="listRepairIds" resultType="java.lang.String">
+        SELECT r.id
+        FROM t_srv_factory_repair r
+        WHERE 1 = 1
+        <include refid="repairVoSearch"></include>
+    </select>
+
+    <select id="countRepairs" parameterType="map" resultType="java.util.HashMap">
+        SELECT status as STATUS, count(*) as NUM
+        FROM `t_srv_factory_repair` r
+        where 1=1
+        <include refid="repairVoSearch"></include>
+        group by status
+    </select>
+    <!-- repair 维修单 #end -->
+
+    <!-- repair_item　维修单物料明细 #begin -->
+    <sql id="all_column_itemmodel">
+        i.id id,
+        i.repair_id repairId,
+        i.macno macno,
+        i.assign_num assignNum,
+        i.good_return_num goodReturnNum,
+        i.bad_return_num badReturnNum,
+        i.last_return_good_time lastReturnGoodTime,
+        i.last_return_bad_time lastReturnBadTime,
+        i.status status,
+        i.org_id orgId,
+        i.create_time createTime,
+        i.update_person updatePerson,
+        i.update_time updateTime
+    </sql>
+
+    <insert id="insertItems" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO `t_srv_factory_repair_item`(repair_id, macno, assign_num, org_id, create_time)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.repairId}, #{item.macno}, #{item.assignNum}, #{item.orgId}, now())
+        </foreach>
+    </insert>
+
+    <update id="updateItem">
+        UPDATE `t_srv_factory_repair_item`
+        <set>
+            <if test="model.goodReturnNum != null and model.goodReturnNum>0">good_return_num = #{model.goodReturnNum},
+            </if>
+            <if test="model.badReturnNum != null and model.badReturnNum>0">bad_return_num = #{model.badReturnNum},</if>
+            <if test="model.lastReturnGoodTime != null">last_return_good_time = #{model.lastReturnGoodTime},</if>
+            <if test="model.lastReturnBadTime != null">last_return_bad_time = #{model.lastReturnBadTime},</if>
+            <if test="model.status != null and model.status>0">status = #{model.status},</if>
+            <if test="model.updatePerson != null and model.updatePerson>0">update_person = #{model.updatePerson},</if>
+            <if test="model.updateTime != null">update_time = #{model.updateTime},</if>
+        </set>
+        where
+            id = #{model.id}
+    </update>
+
+    <select id="selectItems" resultType="com.example.springboot.module.production.RepairItem" parameterType="map">
+        SELECT
+        <include refid="all_column_itemmodel"/>
+        FROM `t_srv_factory_repair_item` i
+        where 1 = 1
+        <if test="conditions.repairIds !=null">
+            AND i.repair_id in
+            <foreach collection="conditions.repairIds" item="repairId" open="(" separator="," close=")">
+                 #{repairId}
+            </foreach>
+        </if>
+    </select>
+    <!-- repair_item　维修单物料明细 #end -->
+
+    <!-- repair_item_sn 维修单串号明细 #begin -->
+    <sql id="all_column_snmodel">
+        s.id id,
+        s.item_id itemId,
+        s.imei imei,
+        s.sn sn,
+        s.status status,
+        s.org_id orgId,
+        s.create_time createTime,
+        s.update_time updateTime
+    </sql>
+
+    <insert id="insertSns">
+        INSERT INTO `t_srv_factory_repair_item_sn`
+        (
+        sn, item_id, imei, org_id, create_time
+        )
+        VALUES
+        <foreach collection="items" item="item" separator=",">
+            (
+            <choose>
+                <when test="item.sn!=null">
+                    #{item.sn},
+                </when>
+                <otherwise>
+                    "",
+                </otherwise>
+            </choose>
+            #{item.itemId}, #{item.imei}, #{item.orgId}, now()
+            )
+        </foreach>
+    </insert>
+
+    <update id="updateSn">
+        UPDATE `t_srv_factory_repair_item_sn`
+        <set>
+            <if test="model.status != null and model.status>0">status = #{model.status},</if>
+            <if test="model.updateTime != null">update_time = #{model.updateTime},</if>
+        </set>
+        where
+            item_id = #{model.itemId} and imei = #{model.imei}
+    </update>
+
+    <select id="selectSns" resultType="com.example.springboot.module.production.RepairItemSn" parameterType="map">
+        SELECT
+        <include refid="all_column_snmodel"/>
+        FROM `t_srv_factory_repair_item_sn` s
+        where 1 = 1
+        <if test="conditions.itemIds != null">
+            AND s.item_id IN
+            <foreach collection="conditions.itemIds" item="itemId" open="(" separator="," close=")">
+                #{itemId}
+            </foreach>
+        </if>
+    </select>
+    <!-- repair_item_sn 维修单串号明细 #end -->
+
+    <!-- repair_mac 维修单用料 #begin -->
+    <!--<select id="selectRepairMacs" resultType="com.example.springboot.module.production.RepairMac">
+        SELECT rm.* FROM t_srv_factory_repair_mac rm
+        INNER JOIN t_srv_factory_storage_change_apply sca on rm.apply_no = sca.apply_no
+        LEFT JOIN t_srv_factory_repair r ON r.id = rm.repair_id
+        where 1 = 1
+        AND sca.status = 3
+        <include refid="repairVoSearch"></include>
+        <include refid="repairMacVoSearch"></include>
+        order by rm.id desc
+    </select>-->
+
+    <!--<insert id="insertRepairMacs" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO `t_srv_factory_repair_mac` (
+        `repair_id`, `apply_no`, `org_id`, `macno`, `quantity`, `used_quantity`, `good_return_num`, `bad_return_num`, `person`, `remark`, `date_created`, `imei`, `position`, `in_price`, `last_updated`) values
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.repairId}, #{item.applyNo}, #{item.orgId}, #{item.macno}, #{item.quantity}, #{item.usedQuantity}, #{item.goodReturnNum}, #{item.badReturnNum}, #{item.person}, #{item.remark}, now(), #{item.imei}, #{item.position}, #{item.inPrice}, #{item.lastUpdated}
+            )
+        </foreach>
+    </insert>-->
+
+    <delete id="deleteByApplyNo">
+        DELETE FROM `t_srv_factory_repair_mac` where apply_no = #{applyNo}
+    </delete>
+
+    <!--<update id="updateRepairMac">
+        UPDATE `t_srv_factory_repair_mac`
+        <set>
+            <if test="model.usedQuantity != null and model.usedQuantity>0">used_quantity = #{model.usedQuantity},</if>
+            <if test="model.goodReturnNum != null and model.goodReturnNum>0">good_return_num = #{model.goodReturnNum},</if>
+            <if test="model.badReturnNum != null and model.badReturnNum>0">bad_return_num = #{model.badReturnNum},</if>
+            <if test="model.lastUpdated != null">last_updated = #{model.lastUpdated},</if>
+            <if test="model.imei != null and model.imei != ''">imei = #{model.imei},</if>
+        </set>
+        where
+        repair_id = #{model.repairId} and macno = #{model.macno}
+    </update>-->
+
+    <!-- repair_mac 维修单用料 #end -->
+
+    <!-- repair_mac_sn 维修用料sn #begin -->
+
+    <!--<insert id="insertRepairMacSns" parameterType="java.util.List">
+        INSERT INTO `t_srv_factory_repair_mac_sn` (
+        `repair_mac_id`, `repair_id`, `macno`, `imei`, `sn`, `meid`, `old_macno`, `old_imei`, `old_sn`, `create_time`, `update_time`) values
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.repairMacId}, #{item.repairId}, #{item.macno}, #{item.imei}, #{item.sn}, #{item.meid}, #{item.oldMacno}, #{item.oldImei}, #{item.oldSn}, #{item.createTime}, #{item.updateTime}
+            )
+        </foreach>
+    </insert>-->
+
+    <!--<select id="selectRepairMacSns" resultType="com.example.springboot.module.production.RepairMacSn" parameterType="map">
+        SELECT `repair_mac_id`, `repair_id`, `macno`, `imei`, `sn`, `meid`, `old_macno`, `old_imei`, `old_sn`, `create_time`, `update_time`
+        FROM `t_srv_factory_repair_mac_sn` s
+        where 1 = 1
+        <if test="conditions.repairId != null">
+            AND s.repair_id = #{conditions.repairId}
+        </if>
+        <if test="conditions.repairMacIds != null">
+            AND s.repair_mac_id IN
+            <foreach collection="conditions.repairMacIds" item="macId" open="(" separator="," close=")">
+                #{macId}
+            </foreach>
+        </if>
+    </select>-->
+
+    <!-- repair_mac_sn 维修用料sn #end -->
+
+    <!-- t_srv_factory_sn_upload 屏幕dsn上传　#begin-->
+    <!--<insert id="insertSnUploads" parameterType="java.util.List">
+        INSERT INTO `t_srv_factory_sn_upload` (
+        repair_id, macno, good_return_num, sn, old_sn, status, err_msg, create_time, create_person) values
+        <foreach collection="items" item="item" separator=",">
+            (
+            #{item.repairId}, #{item.macno}, #{item.goodReturnNum}, #{item.sn}, #{item.oldSn}, #{item.status}, #{item.errMsg}, now(), #{item.createPerson}
+            )
+        </foreach>
+    </insert>-->
+
+    <!--<update id="updateSnUploads">
+        UPDATE `t_srv_factory_sn_upload`
+        <set>
+            <if test="model.status != null">status = #{model.status},</if>
+            <if test="model.errMsg != null and model.errMsg != ''">err_msg = #{model.errMsg},</if>
+            <if test="model.createPerson != null">create_person = #{model.createPerson},</if>
+        </set>
+        where sn = #{model.sn}
+    </update>-->
+
+    <!--<select id="findSnUploadBySn" resultType="com.example.springboot.module.production.RepairSnUpload">
+        SELECT * FROM `t_srv_factory_sn_upload` s
+        where s.sn in
+        <foreach collection="sns" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>-->
+
+    <!--<select id="findSnUploadByOldSn" resultType="com.example.springboot.module.production.RepairSnUpload">
+        SELECT * FROM `t_srv_factory_sn_upload` s
+        where s.old_sn in
+        <foreach collection="oldSns" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>-->
+
+    <!--<select id="findSnUploadByRepairId" resultType="com.example.springboot.module.production.RepairSnUpload">
+        SELECT * FROM `t_srv_factory_sn_upload` s
+        where s.repair_id = #{repairId}
+    </select>-->
+
+    <!-- t_srv_factory_sn_upload 屏幕dsn上传  #end -->
+
+</mapper>

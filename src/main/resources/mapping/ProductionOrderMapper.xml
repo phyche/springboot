@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.example.springboot.mapper.production.ProductionOrderMapper">
+    <select id="select" resultType="com.example.springboot.module.production.ProductionOrder">
+        SELECT
+        *
+        FROM t_srv_factory_prod_order
+        WHERE 1 = 1
+        <if test="id != null and id != ''">
+            AND id = #{id}
+        </if>
+    </select>
+
+    <select id="listItem" resultType="com.example.springboot.module.production.ProductionOrderItem">
+        SELECT
+        *
+        FROM t_srv_factory_prod_order_item
+        WHERE 1 = 1
+        <if test="prodId != null and prodId != ''">
+            AND prod_id = #{prodId}
+        </if>
+        <if test="macNo != null and macNo != ''">
+            AND mac_no = #{macNo}
+        </if>
+    </select>
+    <select id="listItemSn" resultType="com.example.springboot.module.production.ProductionOrderItemSn">
+        SELECT
+        *
+        FROM t_srv_factory_prod_order_item_sn
+        WHERE 1 = 1
+        <if test="itemIds != null">
+            AND item_id IN
+            <foreach collection="itemIds" item="itemId" open="(" separator="," close=")">
+                #{itemId}
+            </foreach>
+        </if>
+    </select>
+    <insert id="insertItems" useGeneratedKeys="true">
+        INSERT INTO t_srv_factory_prod_order_item(prod_id, mac_no, quantity, create_time)
+        VALUES
+        <foreach collection="items" item="item" separator="," >
+            (#{item.prodId}, #{item.macNo}, #{item.quantity}, #{item.createTime})
+        </foreach>
+    </insert>
+    <!--<select id="list" resultType="com.example.springboot.module.production.ProductionOrder">
+        SELECT
+        fpo.*
+        FROM t_srv_factory_prod_order fpo
+        LEFT JOIN t_srv_factory_prod_order_item fpoi ON fpoi.prod_id = fpo.id
+        <if test="qo.hasDateCondition">
+            LEFT JOIN t_log_operate log ON log.type = 'factory_prod_order' AND log.operate_key = fpo.id AND log.sub_type = #{qo.operateLogSubType}
+        </if>
+        WHERE 1 = 1
+        <include refid="qoSql"></include>
+        GROUP BY fpo.id DESC
+        ORDER BY fpo.id DESC
+    </select>-->
+    <!--<select id="countStatus" resultType="java.util.Map">
+        SELECT
+        fpo.status, COUNT(1) AS count
+        FROM t_srv_factory_prod_order fpo
+        <if test="qo.hasMacNoCondition">
+            LEFT JOIN t_srv_factory_prod_order_item fpoi ON fpoi.prod_id = fpo.id
+        </if>
+        <if test="qo.hasDateCondition">
+            LEFT JOIN t_log_operate log ON log.type = 'factory_prod_order' AND log.operate_key = fpo.id AND log.sub_type = #{qo.operateLogSubType}
+        </if>
+        WHERE 1 = 1
+        <include refid="qoSql"></include>
+        GROUP BY fpo.status
+    </select>-->
+    <insert id="insertItemSns">
+        INSERT INTO t_srv_factory_prod_order_item_sn(item_id, imei, sn, create_time)
+        VALUES
+        <foreach collection="itemSns" item="item" separator=",">
+            (#{item.itemId}, #{item.imei}, #{item.sn}, #{item.createTime})
+        </foreach>
+    </insert>
+
+    <!--<select id="countInProducing" resultType="java.lang.Integer">
+        SELECT
+        sum(fpoi.quantity)
+        FROM t_srv_factory_prod_order_item fpoi
+        LEFT JOIN t_srv_factory_prod_order fpo ON fpo.id = fpoi.prod_id
+        WHERE 1 = 1
+        <include refid="qoSql"></include>
+    </select>-->
+    <sql id="qoSql">
+        <if test="qo.qoTimeType != null">
+            <if test="qo.dateFrom != null and qo.dateFrom != ''">
+                AND log.create_time > #{qo.dateFrom}
+            </if>
+            <if test="qo.dateTo != null and qo.dateTo != ''">
+                AND CONCAT(#{qo.dateTo}, ' 23:59:59') > log.create_time
+            </if>
+        </if>
+        <if test="qo.orgId != null and qo.orgId != ''">
+            AND fpo.org_id = #{qo.orgId}
+        </if>
+        <if test="qo.bizType != null">
+            AND fpo.biz_type = #{qo.bizType}
+        </if>
+        <if test="qo.produceType != null">
+            AND fpo.produce_type = #{qo.produceType}
+        </if>
+        <if test="qo.status != null and qo.status.getId() > 0">
+            AND fpo.status = #{qo.status}
+        </if>
+        <if test="qo.inStatus != null and qo.inStatus.size() > 0">
+            AND fpo.status IN
+            <foreach collection="qo.inStatus" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="qo.prodOrderId != null and qo.prodOrderId != ''">
+            AND fpo.id = #{qo.prodOrderId}
+        </if>
+        <if test="qo.inProdOrderId != null and qo.inProdOrderId.size() > 0">
+            AND fpo.id IN
+            <foreach collection="qo.inProdOrderId" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="qo.macNo != null and qo.macNo != ''">
+            AND fpoi.mac_no = #{qo.macNo}
+        </if>
+        <if test="qo.inMacNo != null and qo.inMacNo.size() > 0">
+            AND fpoi.mac_no IN
+            <foreach collection="qo.inMacNo" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+    </sql>
+</mapper>
