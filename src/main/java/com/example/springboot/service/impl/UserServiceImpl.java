@@ -41,4 +41,9 @@ public class UserServiceImpl implements UserService{
         return userDao.selectUserList();
     }
 
+    @Override
+    public List<User> selectUserList(String keywords, Integer pageNum, Integer pageSize) {
+        return userDao.selectUserList();
+    }
+
 }

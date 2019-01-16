@@ -12,4 +12,6 @@ public interface UserService {
     boolean addUser(User record);
 
     List<User> selectUserList();
+
+    List<User> selectUserList(String keywords,Integer pageNum,Integer pageSize);
 }
